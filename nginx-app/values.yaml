@@ -1,0 +1,50 @@
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: stable
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: standard
+
+auth:
+  enabled: true
+  htpasswd: |
+    admin:$apr1$xyz$hashedpassword
+
+
+volumeMounts:
+  - name: nginx-config
+    mountPath: /etc/nginx/conf.d/nginx.conf
+    subPath: nginx.conf
+
+  - name: nginx-auth
+    mountPath: /etc/nginx/auth
+
+volumes:
+  - name: nginx-config
+    configMap:
+      name: nginx-app-config
+
+  - name: nginx-auth
+    secret:
+      secretName: nginx-app-secret
+
+nginx:
+  root: /usr/share/nginx/html
+  index: index.html
